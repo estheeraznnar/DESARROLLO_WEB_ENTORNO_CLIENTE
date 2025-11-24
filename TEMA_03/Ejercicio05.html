@@ -42,12 +42,15 @@
         } else {
             // Generar calendario
             document.write("<h2>" + nombresMeses[mes].toUpperCase() + "</h2>");
+            //Crea la tabla
             document.write("<table border='1' style='border-collapse: collapse;'>");
             document.write("<tr>");
-            document.write("<th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th><th>Sábado</th><th>Domingo</th>");
+            document.write(
+                "<th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th><th>Sábado</th><th>Domingo</th>"
+            );
             document.write("</tr>");
             
-            // Calcular primer día de la semana (asumimos que empieza en lunes)
+            // Calcular primer día de la semana (asumo que empieza en lunes)
             var primerDia = new Date(2025, mes, 1).getDay();
             primerDia = primerDia === 0 ? 6 : primerDia - 1; // Ajustar: domingo=6
             
