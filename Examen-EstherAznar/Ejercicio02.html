@@ -1,203 +1,133 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>Horario</title>
-</head>
-<style>
-    table {
-        border-collapse: collapse;
-    }
-    td {
-        width: 100px;
-        border: solid 2px green;
-        background-color: #e1f2df;
-        text-align: center;
-    }
-</style>
-<body>
-    <h1>Horario 2º DAM</h1>
-    <label for="hora">Seleccione la hora de inicio:</label>
-    <input type="time" id="hora_selec" name="hora_selec">
-       
-    <script>
+    <title>Horario 2º DAM</title>
+    <style>
+        /* Estilo para la tabla - colapsar bordes */
+        table {
+            border-collapse: collapse;
+            margin: 20px;
+        }
         
-        let horario=[
-            ["IPPE", "PROY", "IPPE", "AD", "SGE"],
+        /* Estilo para celdas de la tabla */
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        /* Estilo para las cabeceras de la tabla */
+        th {
+            background-color: black;
+            color: white;
+        }
+        
+        /* Clase para resaltar la asignatura SGE en rojo */
+        .sge {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Horario 2º DAM</h2>
+    
+    <!-- Input tipo time para que el usuario introduzca la hora de inicio -->
+    <label>Hora de inicio:</label>
+    <input type="time" id="horaInicio" value="15:45">
+    <button onclick="generarHorario()">Generar</button>
+    
+    <!-- Contenedor donde se mostrará el horario generado -->
+    <div id="horario"></div>
+
+    <script>
+        // Array bidimensional que guarda las asignaturas
+        // Cada fila representa un periodo de clase
+        // Cada columna representa un día (Lunes, Martes, Miércoles, Jueves, Viernes)
+        let horarios = [
+            ["IPPE", "IPPE", "IPPE", "AD", "SGE"],
             ["DI", "SGE", "AD", "AD", "SGE"],
             ["DI", "SGE", "AD", "AD", "SASP"],
-            ["RECREO","RECREO","RECREO","RECREO","RECREO"],
+            ["RECREO", "RECREO", "RECREO", "RECREO", "RECREO"],
             ["DWC", "PMDM", "PMDM", "PROY", "DI"],
             ["DWC", "PMDM", "PMDM", "PSP", "DI"],
             ["DWC", "PMDM", "PMDM", "PSP", "DI"]
         ];
 
-         //Funcio que calcula las franjas horarias dinamicamente usando Date
-        function calcularHOras(){
-
-            let frnajas = [];
-            //Obtener el elemento input por su ID
-            let inputHora = document.getElementById('hora_selec');
-            
-
-            //Obtener el valor del input (el formato es "HH:MM")
-            let horaSeleccionada = inputHora.value;
-
-            
-            //creo un array para almacenar las franjas horarias
-           let [h, m] = horaSeleccionada.split(':');
-
-            //hora de inicil de la primera clase
-            let horaIni = new Date();
-            horaIni.setHours(horaSeleccionada.split(':').getHours);
-            horaIni.setMinutes(horaSeleccionada.split(':').getMinutes);
-            horaIni.setSeconds(0);
-            horaIni.setMilliseconds(0);
-
-            //console.log(fecha); // Ahora 'fecha' es un objeto Date con la hora correcta
-            
-
-            //duracion de cada clase en minutos
-            let duracionClase = 50;//50 min por clase
-            //Duracion del descanso entre clases
-            let duracionDescanso = 5; //5mins entre clases
-            //Duracion del recreo
-            let duracionRecreo = 15; //15 min de recreo
-
-            //Calculo cada franja horaria
-            for (let i = 0; i < horario.length; i++) {
-                //creo una copia de la hora de inicio para la hora de fin
-                let horaFin = new Date(horaIni.getTime());
-                //Si es el recreo *posicion 3* usar la duracion del recreo
-                if(i === 3){
-                    //sumo los minutos del recreo usando setMinutes
-                    horaFin.setMinutes(horaFin.getMinutes() + duracionRecreo);
-                }else{
-                    //sumo los minutos de clase normal usando setMinutes
-                    horaFin.setMinutes(horaFin.getMinutes() + duracionClase);
-                }
-
-                //Formateo las coras como HH:MM
-                let ini = formatearHora(horaIni); //funcion de abajo
-                let fin = formatearHora(horaFin);
-
-                //Añado la franja al array
-                frnajas.push(ini + " - " + fin);
-
-                //Preparo la hora de inicio para la siguiente clase
-                //Añado el descaso ni no es el recreo
-                if (i === 3) {
-                    //DEspues del recreo, la siguiente clase empieza inmediatamente
-                    hora = new Date(horaFin.getTime());
-                }else{
-                    //DEspues de una clase normal, añadir el descanso
-                    horaIni = new Date(horaFin.getTime());
-                    horaIni.setMinutes(horaIni.getMinutes() + duracionDescanso);
-                }
-            }
-
-            return frnajas;
-        }
-
-        // Función auxiliar para formatear una hora en formato HH:MM
-       function formatearHora(fecha) {
-            // Verificar que fecha sea un objeto Date válido
-            if (!(fecha instanceof Date) || isNaN(fecha.getTime())) {
-                console.error("Error: el parámetro no es un objeto Date válido", fecha);
-                return "00:00";
-            }
-            
-            // Obtener horas y minutos del objeto Date
-            let horas = fecha.getHours();
-            let minutos = fecha.getMinutes();
-            
-            // Añadir cero a la izquierda si es necesario
-            let horasStr = String(horas).padStart(2, '0');
-            let minutosStr = String(minutos).padStart(2, '0');
-            
-            return horasStr + ":" + minutosStr;
-        }
-
-        // Función que genera la tabla HTML del horario
+        // Función que genera el horario calculando las horas
         function generarHorario() {
-            // Array con los nombres de los días (para el encabezado)
-            let diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+            // Obtener el valor del input tipo time
+            const horaInput = document.getElementById('horaInicio').value;
             
-            // Array con las franjas horarias (para la primera columna)
-            // Las horas se deben calcular a partir de la primera columna
-            let horas = calcularHOras();
+            // Separar horas y minutos y convertirlos a números
+            const [hora, minuto] = horaInput.split(':').map(Number);
             
-            // Crear el elemento <table>
-            let tabla = document.createElement("table");
-            tabla.setAttribute("border", "1");
-            tabla.setAttribute("cellpadding", "10");
-            tabla.setAttribute("cellspacing", "0");
+            // Convertir la hora inicial a minutos totales para facilitar cálculos
+            let minutosTotales = hora * 60 + minuto;
             
-            // ===== CREAR FILA DE ENCABEZADOS =====
-            let filaEncabezado = document.createElement("tr");
+            // Array para guardar las franjas horarias calculadas
+            let horas = [];
             
-            // Primera celda vacía (esquina superior izquierda)
-            let thVacio = document.createElement("th");
-            thVacio.textContent = "";
-            filaEncabezado.appendChild(thVacio);
-            
-            // Crear celdas <th> para cada día de la semana
-            for (let i = 0; i < diasSemana.length; i++) {
-                let th = document.createElement("th"); // Crea un elemento <th> (celda de encabezado de tabla)
-                th.textContent = diasSemana[i]; // Asigna el texto del día de la semana al elemento
-                filaEncabezado.appendChild(th);// Añade el elemento <th> a la fila de encabezados
-                                               // Construye la estructura: <tr><th>Lunes</th><th>Martes</th>...</tr>
+            // Calcular las 7 franjas horarias (6 clases + 1 recreo)
+            for (let i = 0; i < 7; i++) {
+                // Hora de inicio de este periodo
+                let inicio = minutosTotales;
+                
+                // Calcular hora de fin según si es recreo (30 min) o clase (55 min)
+                let fin = minutosTotales + (i === 3 ? 30 : 55);
+                
+                // Convertir minutos totales a formato hora:minuto
+                let hIni = Math.floor(inicio / 60);      // Obtener las horas
+                let mIni = inicio % 60;                   // Obtener los minutos
+                let hFin = Math.floor(fin / 60);          // Obtener las horas de fin
+                let mFin = fin % 60;                      // Obtener los minutos de fin
+                
+                // Formatear la hora con formato HH:MM-HH:MM
+                // padStart añade un 0 a la izquierda si es necesario
+                horas.push(`${String(hIni).padStart(2, '0')}:${String(mIni).padStart(2, '0')}-${String(hFin).padStart(2, '0')}:${String(mFin).padStart(2, '0')}`);
+                
+                // Actualizar minutos totales para la siguiente iteración
+                minutosTotales = fin;
             }
             
-            // Añadir la fila de encabezados a la tabla
-            tabla.appendChild(filaEncabezado);
+            // Generar la tabla HTML
+            // Crear la cabecera con los días de la semana
+            let tabla = '<table><tr><th></th><th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th></tr>';
             
-            // ===== CREAR FILAS DE DATOS =====
-            // Recorrer cada franja horaria del array bidimensional
-            for (let i = 0; i < horario.length; i++) {
-                // Crear una nueva fila <tr>
-                let fila = document.createElement("tr");
+            // Recorrer las filas del array horarios
+            for (let i = 0; i < horarios.length; i++) {
+                tabla += '<tr>';
                 
-                // Primera celda: mostrar la hora (se debe calcular)
-                let tdHora = document.createElement("td");
-                tdHora.textContent = horas[i]; // Usar las horas calculadas con Date
-                tdHora.style.fontWeight = "bold";
-                tdHora.style.backgroundColor = "#f0f0f0";
-                fila.appendChild(tdHora);
+                // Primera columna: franja horaria calculada
+                tabla += '<td><b>' + horas[i] + '</b></td>';
                 
-                // Crear celdas <td> para cada día de la semana
-                // Bucle que recorre todos los días de la semana en la fila actual
-                // horario[i].length devuelve 5 (los 5 días: Lunes a Viernes)
-                for (let j = 0; j < horario[i].length; j++) {
-                    let td = document.createElement("td"); // Crea un elemento <td> (celda de datos de tabla)
-                    td.textContent = horario[i][j]; // Asigna la asignatura correspondiente como texto de la celda
-                                                    // horario[i][j] accede al elemento en fila i, columna j
-                                                    // Ejemplo: horario[0][0] = "IPPE" (Lunes, primera hora)
-                    td.style.textAlign = "center";// Centra el texto dentro de la celda
-                    fila.appendChild(td);// Añade la celda <td> a la fila <tr>
-                                        // Construye: <tr><td>IPPE</td><td>PROY</td><td>IPPE</td>...</tr>
+                // Recorrer las columnas (días de la semana)
+                for (let j = 0; j < horarios[i].length; j++) {
+                    let asignatura = horarios[i][j];
+                    
+                    // Si la asignatura es SGE, aplicar la clase CSS para color rojo
+                    if (asignatura === 'SGE') {
+                        tabla += '<td class="sge">' + asignatura + '</td>';
+                    } else {
+                        // Si no es SGE, celda normal
+                        tabla += '<td>' + asignatura + '</td>';
+                    }
                 }
                 
-                // Añadir la fila completa a la tabla
-                tabla.appendChild(fila);
+                tabla += '</tr>';
             }
             
-            // Insertar la tabla en el body del documento
-            document.body.appendChild(tabla);
+            // Cerrar la tabla
+            tabla += '</table>';
+            
+            // Insertar la tabla generada en el div con id "horario"
+            document.getElementById('horario').innerHTML = tabla;
         }
-
-        // Ejecutar la función cuando se carga la página
-        // Usa objetos Date para mostrar las fechas (requisito del ejercicio)
-        window.onload = function() {            
-            // Generar el horario
-            generarHorario();
-        };
-
         
-        
-                
+        // Ejecutar la función generarHorario cuando se cargue la página
+        window.onload = generarHorario;
     </script>
-
 </body>
 </html>
